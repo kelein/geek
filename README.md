@@ -1,2 +1,2 @@
-# my-clean-arch
-Clean arch repo template - https://github.com/kelein/my-clean-arch
+# Geek Tour
+Geek Arduous Tour - https://github.com/kelein/geek
