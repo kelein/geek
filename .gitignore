@@ -29,3 +29,7 @@
 
 # Project-local glide cache
 .glide
+
+# Ingore build binaries
+geek
+bin
