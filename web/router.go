@@ -1,7 +1,6 @@
 package web
 
 import (
-	"log"
 	"net/http"
 	"strings"
 )
@@ -78,19 +77,15 @@ func (r *router) addRoute(method, path string, handler HandlerFunc) {
 
 func (r *router) getRoute(method, path string) (*node, map[string]string) {
 	searchParts := parsePattern(path)
-	log.Printf("searchParts: %v", searchParts)
 	params := make(map[string]string)
 	root, ok := r.roots[method]
-	log.Printf("root: %v, ok: %v", root, ok)
 	if !ok {
 		return nil, nil
 	}
 
 	node := root.search(searchParts, 0)
-	log.Printf("searched node: %v", node)
 	if node != nil {
 		parts := parsePattern(node.pattern)
-		log.Printf("searched parts: %v", parts)
 		for i, part := range parts {
 			if string(part[0]) == ":" {
 				params[part[1:]] = searchParts[i]

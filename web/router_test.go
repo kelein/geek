@@ -55,7 +55,7 @@ func Test_router_getRoute(t *testing.T) {
 	r.addRoute("GET", "/", nil)
 	r.addRoute("GET", "/hello/:name", nil)
 	r.addRoute("GET", "/hi/:name", nil)
-	r.addRoute("GET", "/static/*", nil)
+	r.addRoute("GET", "/static/*filename", nil)
 
 	type m = map[string]string
 	type args struct {
@@ -70,11 +70,10 @@ func Test_router_getRoute(t *testing.T) {
 	}{
 		{"A", args{"GET", "/hello/kallen"}, "/hello/:name", m{"name": "kallen"}},
 		{"B", args{"GET", "/hi/kallen"}, "/hi/:name", m{"name": "kallen"}},
+		{"C", args{"GET", "/static/index.html"}, "/static/*filename", m{"filename": "index.html"}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Logf("init router handlers: %v", r.handlers)
-
 			node, params := r.getRoute(tt.args.method, tt.args.path)
 			t.Logf("router.getRoute(%q, %q) = %v, %v",
 				tt.args.method, tt.args.path, node, params)

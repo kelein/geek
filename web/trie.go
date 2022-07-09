@@ -1,7 +1,6 @@
 package web
 
 import (
-	"log"
 	"strings"
 )
 
@@ -25,7 +24,6 @@ func (n *node) matchChildren(part string) []*node {
 	matched := make([]*node, 0)
 	for _, child := range n.children {
 		if child.part == part || child.isWild {
-			log.Printf("matchChildren(%q): child: %v", part, child)
 			matched = append(matched, child)
 		}
 	}
@@ -34,7 +32,7 @@ func (n *node) matchChildren(part string) []*node {
 
 func (n *node) insert(pattern string, parts []string, height int) {
 	if len(parts) == height {
-		n.part = pattern
+		n.pattern = pattern
 		return
 	}
 
@@ -59,13 +57,9 @@ func (n *node) search(parts []string, height int) *node {
 	}
 
 	part := parts[height]
-	log.Printf("search part: %v", part)
-
 	children := n.matchChildren(part)
 	for _, child := range children {
-		log.Printf("search child: %v", child)
 		result := child.search(parts, height+1)
-		log.Printf("search result: %v", result)
 		if result != nil {
 			return result
 		}

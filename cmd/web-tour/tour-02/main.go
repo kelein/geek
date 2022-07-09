@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"net/http"
 
 	"geek/web"
@@ -47,7 +46,6 @@ func appWithContext() {
 		})
 	})
 
-	log.Printf("ctx router: %v", app.Router())
 	app.Run(":9001")
 }
 
