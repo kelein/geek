@@ -28,10 +28,15 @@ func (e *Engine) Run(addr string) error {
 	return http.ListenAndServe(addr, e)
 }
 
+// Router return engine's router info
+func (e *Engine) Router() *router {
+	return e.router
+}
+
 func (e *Engine) addRouter(method, path string, handler HandlerFunc) {
 	// key := method + "-" + path
 	// e.router[key] = handler
-	e.router.addRouter(method, path, handler)
+	e.router.addRoute(method, path, handler)
 }
 
 // GET handler http get request

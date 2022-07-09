@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"net/http"
 
 	"geek/web"
@@ -38,6 +39,15 @@ func appWithContext() {
 			"password": ctx.PostForm("password"),
 		})
 	})
+
+	app.GET("/hello/:name", func(ctx *web.Context) {
+		ctx.JSON(http.StatusOK, web.H{
+			"name": ctx.Param("name"),
+			"path": ctx.Path,
+		})
+	})
+
+	log.Printf("ctx router: %v", app.Router())
 	app.Run(":9001")
 }
 
