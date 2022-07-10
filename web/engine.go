@@ -11,12 +11,11 @@ type HandlerFunc func(*Context)
 
 // Engine implement Handler interface
 type Engine struct {
-	// router map[string]HandlerFunc
-	router *router
+	// router *router
 
 	// RouterGroup pointer to access by engine
 	*RouterGroup
-	groups []*RouterGroup
+	// groups []*RouterGroup
 }
 
 // * Version Without RouterGroup
@@ -24,7 +23,6 @@ type Engine struct {
 /*
 func NewEngine() *Engine {
 	return &Engine{
-		// router: make(map[string]HandlerFunc),
 		router: newRouter(),
 	}
 }
@@ -32,10 +30,11 @@ func NewEngine() *Engine {
 
 // NewEngine create Engine instance
 func NewEngine() *Engine {
-	e := &Engine{router: newRouter()}
-	e.RouterGroup = &RouterGroup{engine: e}
-	e.groups = []*RouterGroup{e.RouterGroup}
-	return e
+	return &Engine{
+		&RouterGroup{
+			router: newRouter(),
+		},
+	}
 }
 
 // Run start the http server with engine
@@ -76,15 +75,6 @@ func (e *Engine) DELETE(path string, handler HandlerFunc) {
 }
 
 func (e *Engine) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	// * Version: Without Context
-	// key := req.Method + "-" + req.URL.Path
-	// if handler, ok := e.router[key]; ok {
-	// 	handler(w, req)
-	// } else {
-	// 	w.WriteHeader(http.StatusNotFound)
-	// 	fmt.Fprintf(w, "404 Not FOUND: %s\n", req.URL)
-	// }
-
 	// * Version: With Context
 	ctx := newContext(w, req)
 	e.router.handle(ctx)
@@ -93,26 +83,22 @@ func (e *Engine) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 // RouterGroup group router with prefix
 type RouterGroup struct {
 	prefix      string
-	engine      *Engine
-	parent      *RouterGroup
+	router      *router
 	middlewares []HandlerFunc
 }
 
 // Group create new RouterGroup instance with prefix.
 // Every RouterGroup instance share the same Engine.
 func (g *RouterGroup) Group(prefix string) *RouterGroup {
-	group := &RouterGroup{
+	return &RouterGroup{
 		prefix: g.prefix + prefix,
-		engine: g.engine,
-		parent: g,
+		router: g.router,
 	}
-	g.engine.groups = append(g.engine.groups, group)
-	return group
 }
 
 func (g *RouterGroup) addRoute(method, prefix string, handler HandlerFunc) {
 	pattern := g.prefix + prefix
-	g.engine.router.addRoute(method, pattern, handler)
+	g.router.addRoute(method, pattern, handler)
 }
 
 // GET handler http get request by group

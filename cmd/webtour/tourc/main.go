@@ -85,6 +85,15 @@ func appWithGroup() {
 		})
 	})
 
+	// * Nested Router Group
+	static := v2.Group("/static")
+	static.GET("/", func(ctx *web.Context) {
+		ctx.HTML(http.StatusOK, "<h2>Home</h2")
+	})
+	static.GET("/home", func(ctx *web.Context) {
+		ctx.HTML(http.StatusOK, "<h2>Home</h2")
+	})
+
 	app.Run(":9001")
 }
 
