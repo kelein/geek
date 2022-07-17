@@ -101,6 +101,8 @@ func (r *router) getRoute(method, path string) (*node, map[string]string) {
 	return nil, nil
 }
 
+// * Router handle func without middlewares
+/*
 func (r *router) handle(ctx *Context) {
 	node, params := r.getRoute(ctx.Method, ctx.Path)
 	if node != nil {
@@ -110,4 +112,21 @@ func (r *router) handle(ctx *Context) {
 	} else {
 		ctx.String(http.StatusNotFound, "404 Not Found: %q\n", ctx.Path)
 	}
+}
+*/
+
+// * handle Router handle func with middlewares
+func (r *router) handle(ctx *Context) {
+	node, params := r.getRoute(ctx.Method, ctx.Path)
+	if node != nil {
+		ctx.Params = params
+		key := ctx.Method + "-" + node.pattern
+		ctx.handlers = append(ctx.handlers, r.handlers[key])
+	} else {
+		ctx.handlers = append(ctx.handlers, func(ctx *Context) {
+			ctx.String(http.StatusNotFound, "404 Not Found: %q\n", ctx.Path)
+		})
+	}
+
+	ctx.Next()
 }

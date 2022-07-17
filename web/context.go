@@ -17,6 +17,10 @@ type Context struct {
 	Method     string
 	StatusCode int
 	Params     map[string]string
+
+	// Middleware Properties
+	handlers []HandlerFunc
+	index    int
 }
 
 // newContext contains http request and response info
@@ -26,6 +30,7 @@ func newContext(w http.ResponseWriter, req *http.Request) *Context {
 		Writer:  w,
 		Method:  req.Method,
 		Path:    req.URL.Path,
+		index:   -1,
 	}
 }
 
@@ -85,4 +90,13 @@ func (ctx *Context) HTML(code int, html string) {
 	ctx.Status(code)
 	ctx.SetHeader("Content-Type", "text/html")
 	ctx.Writer.Write([]byte(html))
+}
+
+// Next process middleware handlers serially
+func (ctx *Context) Next() {
+	ctx.index++
+	l := len(ctx.handlers)
+	for ; ctx.index < l; ctx.index++ {
+		ctx.handlers[ctx.index](ctx)
+	}
 }

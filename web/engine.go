@@ -2,6 +2,7 @@ package web
 
 import (
 	"net/http"
+	"strings"
 )
 
 // HandlerFunc wrap handler function
@@ -15,7 +16,7 @@ type Engine struct {
 
 	// RouterGroup pointer to access by engine
 	*RouterGroup
-	// groups []*RouterGroup
+	groups []*RouterGroup
 }
 
 // * Version Without RouterGroup
@@ -30,11 +31,9 @@ func NewEngine() *Engine {
 
 // NewEngine create Engine instance
 func NewEngine() *Engine {
-	return &Engine{
-		&RouterGroup{
-			router: newRouter(),
-		},
-	}
+	engine := &Engine{RouterGroup: &RouterGroup{router: newRouter()}}
+	engine.groups = []*RouterGroup{engine.RouterGroup}
+	return engine
 }
 
 // Run start the http server with engine
@@ -77,7 +76,20 @@ func (e *Engine) DELETE(path string, handler HandlerFunc) {
 func (e *Engine) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	// * Version: With Context
 	ctx := newContext(w, req)
+	ctx.handlers = e.getMiddlewares(w, req)
 	e.router.handle(ctx)
+}
+
+func (e *Engine) getMiddlewares(w http.ResponseWriter, req *http.Request) []HandlerFunc {
+	middlewares := []HandlerFunc{}
+	for _, g := range e.groups {
+		if strings.HasPrefix(req.URL.Path, g.prefix) {
+			middlewares = append(middlewares, g.middlewares...)
+		}
+	}
+
+	// log.Printf("engine middlewares: %v", middlewares)
+	return middlewares
 }
 
 // RouterGroup group router with prefix
@@ -119,4 +131,9 @@ func (g *RouterGroup) PUT(path string, handler HandlerFunc) {
 // DELETE handler http delete request by group
 func (g *RouterGroup) DELETE(path string, handler HandlerFunc) {
 	g.addRoute(http.MethodDelete, path, handler)
+}
+
+// Use register serial middlewares to the router group
+func (g *RouterGroup) Use(middlewares ...HandlerFunc) {
+	g.middlewares = append(g.middlewares, middlewares...)
 }
