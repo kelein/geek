@@ -166,6 +166,7 @@ func (g *RouterGroup) createStaticHandler(relativePath string, fs http.FileSyste
 			ctx.Status(http.StatusNotFound)
 			return
 		}
+		ctx.StatusCode = http.StatusOK
 		fileServer.ServeHTTP(ctx.Writer, ctx.Request)
 	}
 }
