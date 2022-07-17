@@ -21,6 +21,9 @@ type Context struct {
 	// Middleware Properties
 	handlers []HandlerFunc
 	index    int
+
+	// Global Engine Instance Pointer
+	engine *Engine
 }
 
 // newContext contains http request and response info
@@ -86,10 +89,22 @@ func (ctx *Context) JSON(code int, value interface{}) {
 }
 
 // HTML return a html string response
+// * Version without html support
+/*
 func (ctx *Context) HTML(code int, html string) {
 	ctx.Status(code)
 	ctx.SetHeader("Content-Type", "text/html")
 	ctx.Writer.Write([]byte(html))
+}
+*/
+
+// HTML return a html string response
+func (ctx *Context) HTML(code int, name string, data interface{}) {
+	ctx.Status(code)
+	ctx.SetHeader("Content-Type", "text/html")
+	if err := ctx.engine.template.ExecuteTemplate(ctx.Writer, name, data); err != nil {
+		ctx.String(http.StatusInternalServerError, "%v", err)
+	}
 }
 
 // Next process middleware handlers serially

@@ -1,7 +1,9 @@
 package web
 
 import (
+	"html/template"
 	"net/http"
+	"path"
 	"strings"
 )
 
@@ -17,6 +19,10 @@ type Engine struct {
 	// RouterGroup pointer to access by engine
 	*RouterGroup
 	groups []*RouterGroup
+
+	// Template Render
+	template *template.Template
+	funcMap  template.FuncMap
 }
 
 // * Version Without RouterGroup
@@ -77,9 +83,11 @@ func (e *Engine) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	// * Version: With Context
 	ctx := newContext(w, req)
 	ctx.handlers = e.getMiddlewares(w, req)
+	ctx.engine = e
 	e.router.handle(ctx)
 }
 
+// getMiddlewares return all router groups middlewares
 func (e *Engine) getMiddlewares(w http.ResponseWriter, req *http.Request) []HandlerFunc {
 	middlewares := []HandlerFunc{}
 	for _, g := range e.groups {
@@ -88,8 +96,17 @@ func (e *Engine) getMiddlewares(w http.ResponseWriter, req *http.Request) []Hand
 		}
 	}
 
-	// log.Printf("engine middlewares: %v", middlewares)
 	return middlewares
+}
+
+// SetFuncMap setting funcMap for engine
+func (e *Engine) SetFuncMap(funcMap template.FuncMap) {
+	e.funcMap = funcMap
+}
+
+// LoadGlobHTML for global html template
+func (e *Engine) LoadGlobHTML(pattern string) {
+	e.template = template.Must(template.New("").Funcs(e.funcMap).ParseGlob(pattern))
 }
 
 // RouterGroup group router with prefix
@@ -136,4 +153,26 @@ func (g *RouterGroup) DELETE(path string, handler HandlerFunc) {
 // Use register serial middlewares to the router group
 func (g *RouterGroup) Use(middlewares ...HandlerFunc) {
 	g.middlewares = append(g.middlewares, middlewares...)
+}
+
+// createStaticHandler for making static handler
+func (g *RouterGroup) createStaticHandler(relativePath string, fs http.FileSystem) HandlerFunc {
+	absolutePath := path.Join(g.prefix, relativePath)
+	fileServer := http.StripPrefix(absolutePath, http.FileServer(fs))
+
+	return func(ctx *Context) {
+		file := ctx.Param("filepath")
+		if _, err := fs.Open(file); err != nil {
+			ctx.Status(http.StatusNotFound)
+			return
+		}
+		fileServer.ServeHTTP(ctx.Writer, ctx.Request)
+	}
+}
+
+// Static serve static files
+func (g *RouterGroup) Static(relativePath, root string) {
+	handler := g.createStaticHandler(relativePath, http.Dir(root))
+	pattern := path.Join(relativePath, "/*filepath")
+	g.GET(pattern, handler)
 }

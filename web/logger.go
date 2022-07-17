@@ -38,7 +38,7 @@ func statusColor(code int) string {
 	if code >= 400 && code < 500 {
 		return Red.Bold(code)
 	}
-	return Black.Bold(code)
+	return Magenta.Bold(code)
 }
 
 // Logger for default request log middleware
