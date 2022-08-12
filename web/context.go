@@ -102,8 +102,10 @@ func (ctx *Context) HTML(code int, html string) {
 func (ctx *Context) HTML(code int, name string, data interface{}) {
 	ctx.Status(code)
 	ctx.SetHeader("Content-Type", "text/html")
-	if err := ctx.engine.template.ExecuteTemplate(ctx.Writer, name, data); err != nil {
-		ctx.String(http.StatusInternalServerError, "%v", err)
+	err := ctx.engine.template.ExecuteTemplate(ctx.Writer, name, data)
+	if err != nil {
+		// ctx.String(http.StatusInternalServerError, "%v", err)
+		ctx.Fail(http.StatusInternalServerError, err.Error())
 	}
 }
 
@@ -114,4 +116,10 @@ func (ctx *Context) Next() {
 	for ; ctx.index < l; ctx.index++ {
 		ctx.handlers[ctx.index](ctx)
 	}
+}
+
+// Fail handle error response
+func (ctx *Context) Fail(code int, err string) {
+	ctx.index = len(ctx.handlers)
+	ctx.JSON(code, H{"error": err})
 }

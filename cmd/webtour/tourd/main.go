@@ -60,6 +60,9 @@ func appWithGroup() {
 	// Enable Request Logger
 	app.Use(web.Logger())
 
+	// Enable Recover
+	app.Use(web.Recover())
+
 	// * Eanble HTML Template Render
 	dir, _ := os.Getwd()
 	app.SetFuncMap(template.FuncMap{
@@ -117,6 +120,17 @@ func appWithGroup() {
 			"error": http.ErrHandlerTimeout.Error(),
 			"code":  http.StatusGatewayTimeout,
 		})
+	})
+
+	// * Test Template Render
+	static.GET("/demo", func(ctx *web.Context) {
+		ctx.HTML(http.StatusOK, "index.html", nil)
+	})
+
+	// * Test Recover
+	static.GET("/panic", func(ctx *web.Context) {
+		v := []string{"test", "panic"}
+		ctx.String(http.StatusOK, v[3])
 	})
 
 	app.Run(":9001")

@@ -27,7 +27,7 @@ func appWithoutContext() {
 func appWithContext() {
 	app := web.NewEngine()
 	app.GET("/", func(ctx *web.Context) {
-		ctx.HTML(http.StatusOK, "<h1>Hello Geek!</h1>")
+		ctx.HTML(http.StatusOK, "", "<h1>Hello Geek!</h1>")
 	})
 	app.GET("/hello", func(ctx *web.Context) {
 		ctx.String(http.StatusOK, "Hello, %s\n", ctx.Query("name"))

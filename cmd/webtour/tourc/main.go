@@ -27,7 +27,7 @@ func appWithoutContext() {
 func appWithContext() {
 	app := web.NewEngine()
 	app.GET("/", func(ctx *web.Context) {
-		ctx.HTML(http.StatusOK, "<h1>Hello Geek!</h1>")
+		ctx.HTML(http.StatusOK, "", "<h1>Hello Geek!</h1>")
 	})
 	app.GET("/hello", func(ctx *web.Context) {
 		ctx.String(http.StatusOK, "Hello, %s\n", ctx.Query("name"))
@@ -52,10 +52,10 @@ func appWithContext() {
 func appWithGroup() {
 	app := web.NewEngine()
 	app.GET("/", func(ctx *web.Context) {
-		ctx.HTML(http.StatusOK, "<h1>Home Index</h1>")
+		ctx.HTML(http.StatusOK, "<h1>Home Index</h1>", nil)
 	})
 	app.GET("/index", func(ctx *web.Context) {
-		ctx.HTML(http.StatusOK, "<h1>Home Index</h1>")
+		ctx.HTML(http.StatusOK, "<h1>Home Index</h1>", nil)
 	})
 	app.GET("/apis", func(ctx *web.Context) {
 		ctx.JSON(http.StatusOK, app.Router())
@@ -64,7 +64,7 @@ func appWithGroup() {
 	// * V1 Router Group
 	v1 := app.Group("/v1")
 	v1.GET("/", func(ctx *web.Context) {
-		ctx.HTML(http.StatusOK, "<h1>Hello Geek!</h1>")
+		ctx.HTML(http.StatusOK, "<h1>Hello Geek!</h1>", nil)
 	})
 	v1.GET("/hello", func(ctx *web.Context) {
 		ctx.String(http.StatusOK, "Hello, %s\n", ctx.Query("name"))
@@ -88,10 +88,15 @@ func appWithGroup() {
 	// * Nested Router Group
 	static := v2.Group("/static")
 	static.GET("/", func(ctx *web.Context) {
-		ctx.HTML(http.StatusOK, "<h2>Home</h2")
+		ctx.HTML(http.StatusOK, "<h2>Home</h2", nil)
 	})
 	static.GET("/home", func(ctx *web.Context) {
-		ctx.HTML(http.StatusOK, "<h2>Home</h2")
+		ctx.HTML(http.StatusOK, "<h2>Home</h2", nil)
+	})
+
+	// * Test Template Render
+	static.GET("/demo", func(ctx *web.Context) {
+		ctx.HTML(http.StatusOK, "css.tmpl", nil)
 	})
 
 	app.Run(":9001")
