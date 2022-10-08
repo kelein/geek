@@ -5,40 +5,32 @@ import (
 	"testing"
 )
 
-func TestClause_Set(t *testing.T) {
+func TestClause_Select(t *testing.T) {
+	clause := new(Clause)
+	clause.Set(LIMIT, 3)
+	clause.Set(SELECT, "user", []string{"*"})
+	clause.Set(WHERE, "name = ?", "Tom")
+	clause.Set(ORDERBY, "name DESC")
 
+	sql, vars := clause.Build(SELECT, WHERE, ORDERBY, LIMIT)
+	t.Logf("clause.Build() sql = %q, vars = %v", sql, vars)
+	wantSQL := "SELECT * FROM user WHERE name = ? ORDER BY name DESC LIMIT ?"
+	wantVars := []interface{}{"Tom", 3}
+	if sql != wantSQL {
+		t.Errorf("clause.Build() sql failed")
+	}
+	if !reflect.DeepEqual(vars, wantVars) {
+		t.Errorf("clause.Build() vars failed")
+	}
+}
+
+func TestClause_Insert(t *testing.T) {
+	// clause := new(Clause)
+	// clause.Set(INSERT, "user", []string)
 }
 
 func TestClause_Build(t *testing.T) {
-	type fields struct {
-		sql  map[Kind]string
-		vars map[Kind]interface{}
-	}
-	type args struct {
-		orders []Kind
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		args   args
-		want   string
-		want1  []interface{}
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			c := &Clause{
-				sql:  tt.fields.sql,
-				vars: tt.fields.vars,
-			}
-			got, got1 := c.Build(tt.args.orders...)
-			if got != tt.want {
-				t.Errorf("Clause.Build() got = %v, want %v", got, tt.want)
-			}
-			if !reflect.DeepEqual(got1, tt.want1) {
-				t.Errorf("Clause.Build() got1 = %v, want %v", got1, tt.want1)
-			}
-		})
-	}
+	t.Run("SELECT", func(t *testing.T) {
+		TestClause_Select(t)
+	})
 }

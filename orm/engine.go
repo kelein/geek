@@ -33,6 +33,7 @@ func NewEngine(driver, source string) (*Engine, error) {
 	if !ok {
 		glog.Errorf("dailect %q not found", driver)
 	}
+	glog.Errorf(glog.Red.Bold("dailect info: %v"), dialect)
 
 	glog.Info("database connect success!")
 	return &Engine{db: db, dialect: dialect}, nil

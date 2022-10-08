@@ -1,9 +1,10 @@
 package dialect
 
 import (
-	"geek/glog"
 	"reflect"
 	"strings"
+
+	"geek/glog"
 )
 
 // var dialects = map[string]Dialect{}

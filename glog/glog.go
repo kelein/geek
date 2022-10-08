@@ -53,7 +53,7 @@ var levelTexts = map[Level]string{
 }
 
 var levelColors = map[Level]Color{
-	InfoLevel:  Cyan,
+	InfoLevel:  Green,
 	WarnLevel:  Yellow,
 	ErrorLevel: Red,
 }
@@ -70,12 +70,12 @@ func (l Level) Colored() string {
 
 // Prefixer return colorized logger prefix
 func (l Level) Prefixer() string {
-	return fmt.Sprintf("%s ", l.Colored())
+	return fmt.Sprintf("%s - ", l.Colored())
 }
 
 var (
 	mtx         sync.Mutex
-	logFlags    = log.LstdFlags | log.Lshortfile
+	logFlags    = log.LstdFlags | log.Lshortfile | log.Lmsgprefix
 	infoLogger  = log.New(os.Stdout, InfoLevel.Prefixer(), logFlags)
 	warnLogger  = log.New(os.Stdout, WarnLevel.Prefixer(), logFlags)
 	errorLogger = log.New(os.Stdout, ErrorLevel.Prefixer(), logFlags)

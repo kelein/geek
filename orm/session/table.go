@@ -22,7 +22,7 @@ func (s *Session) Model(value interface{}) *Session {
 // RefTable get database session refTable
 func (s *Session) RefTable() *schema.Schema {
 	if s.refTable == nil {
-		glog.Error("session modal is nil")
+		glog.Error("session modal is not set")
 	}
 	return s.refTable
 }

@@ -26,6 +26,17 @@ func (s *Schema) GetField(name string) *Field {
 	return s.fieldMap[name]
 }
 
+// RecordValues get record fields value in SQL format
+func (s *Schema) RecordValues(dest interface{}) []interface{} {
+	fieldVals := make([]interface{}, len(s.Fields))
+	value := reflect.Indirect(reflect.ValueOf(dest))
+	for _, fd := range s.Fields {
+		val := value.FieldByName(fd.Name).Interface()
+		fieldVals = append(fieldVals, val)
+	}
+	return fieldVals
+}
+
 // Parse convert any object into ORM Schema
 func Parse(dest interface{}, dialect dialect.Dialect) *Schema {
 	modelType := reflect.Indirect(reflect.ValueOf(dest)).Type()

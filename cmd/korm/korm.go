@@ -76,7 +76,9 @@ func ormQuery() {
 }
 
 func main() {
-	glog.Warn(strings.Repeat("-", 10))
+	// rawQuery()
+
+	glog.Warn(glog.Yellow.Add(strings.Repeat("=", 20)))
 
 	ormQuery()
 }

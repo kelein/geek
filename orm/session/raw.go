@@ -5,18 +5,19 @@ import (
 	"strings"
 
 	"geek/glog"
+	"geek/orm/clause"
 	"geek/orm/dialect"
 	"geek/orm/schema"
 )
 
 // Session for Database
 type Session struct {
-	db   *sql.DB
-	sql  strings.Builder
-	vals []interface{}
-
+	db       *sql.DB
 	dialect  dialect.Dialect
 	refTable *schema.Schema
+	sql      strings.Builder
+	vals     []interface{}
+	clause   clause.Clause
 }
 
 // New create db session instance
@@ -28,6 +29,7 @@ func New(db *sql.DB, dialect dialect.Dialect) *Session {
 func (s *Session) Clear() {
 	s.sql.Reset()
 	s.vals = nil
+	s.clause = clause.Clause{}
 }
 
 // DB get db instance for session

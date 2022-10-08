@@ -8,7 +8,7 @@ import (
 	"geek/orm/dialect"
 )
 
-var sqlite, _ = dialect.GetDialect("sqlite")
+var sqlite, _ = dialect.GetDialect("sqlite3")
 
 type User struct {
 	Name string `GEORM:"PRIMARY KEY"`

@@ -12,8 +12,6 @@ type sqlite struct{}
 
 var _ Dialect = (*sqlite)(nil)
 
-// func init() { RegisterDialect(dialName, &sqlite{}) }
-
 func init() { RegisterDialect(dialName, &sqlite{}) }
 
 func (s *sqlite) DataTypeOf(v reflect.Value) string {

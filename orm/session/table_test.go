@@ -26,8 +26,8 @@ func TestSession_CreateTable(t *testing.T) {
 	driver := "sqlite3"
 
 	t.Logf("support dialect list: %v", dialect.Dialects())
-	sqliteDial, _ := dialect.GetDialect(driver)
-	t.Logf("sqliteDial: %v", sqliteDial)
+	sqliteDial, ok := dialect.GetDialect(driver)
+	t.Logf("sqliteDial: %v, exists: %v", sqliteDial, ok)
 
 	db, err := sql.Open(driver, "geek.db")
 	if err != nil {
@@ -35,12 +35,11 @@ func TestSession_CreateTable(t *testing.T) {
 	}
 	t.Logf("db info: %v", db)
 
+	t.Logf("current dialect list: %v", dialect.Dialects())
 	dial, ok := dialect.GetDialect(driver)
 	if !ok {
-		t.Logf("current dialect list: %v", dialect.Dialects())
 		t.Errorf("dialect %q not found", driver)
 	}
-	t.Logf("current dialect list: %v", dialect.Dialects())
 	t.Logf("dialect info: %v", dial)
 
 	s := New(db, dial).Model(&Group{})
