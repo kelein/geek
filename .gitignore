@@ -33,3 +33,6 @@
 # Ingore build binaries
 geek
 bin
+
+# Ingore test data
+geek.db

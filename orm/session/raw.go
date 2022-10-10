@@ -10,9 +10,22 @@ import (
 	"geek/orm/schema"
 )
 
+// CommonDB for abstract DB
+type CommonDB interface {
+	QueryRow(query string, args ...any) *sql.Row
+	Query(query string, args ...any) (*sql.Rows, error)
+	Exec(query string, args ...any) (sql.Result, error)
+}
+
+var (
+	_ CommonDB = (*sql.DB)(nil)
+	_ CommonDB = (*sql.Tx)(nil)
+)
+
 // Session for Database
 type Session struct {
 	db       *sql.DB
+	tx       *sql.Tx
 	dialect  dialect.Dialect
 	refTable *schema.Schema
 	sql      strings.Builder
@@ -33,7 +46,12 @@ func (s *Session) Clear() {
 }
 
 // DB get db instance for session
-func (s *Session) DB() *sql.DB { return s.db }
+func (s *Session) DB() CommonDB {
+	if s.tx != nil {
+		return s.tx
+	}
+	return s.db
+}
 
 // Raw is a original raw SQL builder
 func (s *Session) Raw(sql string, values ...interface{}) *Session {

@@ -46,3 +46,28 @@ func (e *Engine) Close() { e.db.Close() }
 func (e *Engine) NewSession() *session.Session {
 	return session.New(e.db, e.dialect)
 }
+
+// Txfunc stands for Transaction callback function
+type Txfunc func(*session.Session) (interface{}, error)
+
+// Transaction create a transaction
+func (e *Engine) Transaction(f Txfunc) (result interface{}, err error) {
+	s := e.NewSession()
+	if err := s.Begin(); err != nil {
+		return nil, err
+	}
+
+	defer func() {
+		if r := recover(); r != nil {
+			s.Rollback()
+			panic(r)
+		} else if err != nil {
+			s.Rollback()
+		} else {
+			// if commit failed update err and rollback
+			err = s.Commit()
+		}
+	}()
+
+	return f(s)
+}

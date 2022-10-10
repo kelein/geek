@@ -2,12 +2,19 @@ package session
 
 import (
 	"database/sql"
+	"strings"
+	"testing"
+
 	"geek/orm/clause"
 	"geek/orm/dialect"
 	"geek/orm/schema"
-	"strings"
-	"testing"
 )
+
+func TestSession_RecordInit(t *testing.T) {
+	t.Helper()
+
+	// s := NewSession().Model(&Users{})
+}
 
 func TestSession_Insert(t *testing.T) {
 	type fields struct {

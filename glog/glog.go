@@ -106,12 +106,14 @@ func (g Glogger) LevelFunc(lvl Level) {
 
 // Logger Methods Alias
 var (
-	Info   = infoLogger.Print
-	Infof  = infoLogger.Printf
-	Warn   = warnLogger.Print
-	Warnf  = warnLogger.Printf
-	Error  = errorLogger.Print
-	Errorf = errorLogger.Printf
+	Info  = infoLogger.Print
+	Infof = infoLogger.Printf
+
+	Warn  = warnLogger.Print
+	Warnf = warnLogger.Printf
+
+	// Error  = errorLogger.Print
+	// Errorf = errorLogger.Printf
 )
 
 var glogers = []*Glogger{
@@ -149,4 +151,15 @@ func SetGlogLevel(lvl Level) {
 		g.SetOutput(os.Stdout)
 		g.LevelFunc(lvl)
 	}
+}
+
+// Error print error log
+func Error(v ...any) {
+	errorLogger.Print(v...)
+}
+
+// Errorf print error log with format string
+func Errorf(format string, v ...any) {
+	colord := levelColors[ErrorLevel].Add(format)
+	errorLogger.Printf(colord, v...)
 }
