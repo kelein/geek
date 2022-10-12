@@ -11,8 +11,7 @@ import (
 
 // Model update session refTable via schema
 func (s *Session) Model(value interface{}) *Session {
-	equal := reflect.TypeOf(value) == reflect.TypeOf(s.refTable.Model)
-	if s.refTable == nil || !equal {
+	if s.refTable == nil || reflect.TypeOf(value) != reflect.TypeOf(s.refTable.Model) {
 		s.refTable = schema.Parse(value, s.dialect)
 	}
 
