@@ -2,6 +2,8 @@ package orm
 
 import (
 	"database/sql"
+	"fmt"
+	"strings"
 
 	"geek/glog"
 	"geek/orm/dialect"
@@ -70,4 +72,67 @@ func (e *Engine) Transaction(f Txfunc) (result interface{}, err error) {
 	}()
 
 	return f(s)
+}
+
+// Migrate migrates the given table
+func (e *Engine) Migrate(value interface{}) error {
+	txFn := func(s *session.Session) (interface{}, error) {
+		if !s.Model(value).HasTable() {
+			glog.Warn("table %q does not exist", s.RefTable().Name)
+			return nil, s.CreateTable()
+		}
+
+		table := s.RefTable()
+		sql := fmt.Sprintf("SELECT * FROM %s LIMIT 1", table.Name)
+		rows, err := s.Raw(sql).QueryRows()
+		if err != nil {
+			glog.Error("query rows failed: %v", err)
+			return nil, err
+		}
+
+		columns, _ := rows.Columns()
+		addCols := diff(table.FieldNames, columns)
+		delCols := diff(columns, table.FieldNames)
+		glog.Infof("added columns: %v, deleted columns: %v", addCols, delCols)
+
+		// * Add Table Columns
+		for _, col := range addCols {
+			fd := table.GetField(col)
+			sql := fmt.Sprintf("ALTER TABLE %s ADD COLUMN %s %s;", table.Name, fd.Name, fd.Type)
+			if _, err := s.Raw(sql).Exec(); err != nil {
+				return nil, err
+			}
+		}
+
+		if len(delCols) == 0 {
+			return nil, nil
+		}
+
+		// * Delete Table Coloumns
+		tmp := "tmp_" + table.Name
+		fileds := strings.Join(table.FieldNames, ",")
+		s.Raw(fmt.Sprintf("CREATE TABLE %s AS SELECT %s FROM %s;", tmp, fileds, table.Name))
+		s.Raw(fmt.Sprintf("DROP TABLE %s;", table.Name))
+		s.Raw(fmt.Sprintf("ALTER TABLE %s RENAME TO %s;", tmp, table.Name))
+		_, err = s.Exec()
+		return nil, err
+	}
+	_, err := e.Transaction(txFn)
+	return err
+}
+
+// diff returns differences between a and b
+func diff(a, b []string) []string {
+	B := make(map[string]any, len(b))
+	for _, v := range b {
+		B[v] = true
+	}
+
+	items := []string{}
+	for _, v := range a {
+		if _, ok := B[v]; !ok {
+			items = append(items, v)
+		}
+	}
+	return items
 }
