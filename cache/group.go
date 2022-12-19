@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"log"
 	"sync"
+
+	"geek/cache/proto"
+	"geek/cache/singleflight"
 )
 
 // 接收 key --> 检查是否被缓存 --是--> 返回缓存值 (1)
@@ -35,6 +38,8 @@ type Group struct {
 	name   string
 	getter Getter
 	mcache cache
+	peers  PeerPicker
+	loader *singleflight.Group
 }
 
 // NewGroup create a new Group instance
@@ -49,6 +54,7 @@ func NewGroup(name string, cacheBytes int64, getter Getter) *Group {
 		name:   name,
 		getter: getter,
 		mcache: cache{cacheBytes: cacheBytes},
+		loader: &singleflight.Group{},
 	}
 	groups[name] = g
 	return g
@@ -77,7 +83,46 @@ func (g *Group) Get(key string) (ByteView, error) {
 }
 
 func (g *Group) load(key string) (ByteView, error) {
-	return g.getLocal(key)
+	fn := func() (interface{}, error) {
+		if g.peers != nil {
+			if peer, ok := g.peers.Pick(key); ok {
+				value, err := g.getFromPeer(peer, key)
+				if err == nil {
+					return value, nil
+				}
+				log.Printf("load from peer failed: %v", err)
+			}
+		}
+
+		return g.getLocal(key)
+	}
+
+	v, err := g.loader.Do(key, fn)
+	if err != nil {
+		return ByteView{}, err
+	}
+	return v.(ByteView), nil
+}
+
+// getFromPeer with HTTP
+// func (g *Group) getFromPeer(peer PeerGetter, key string) (ByteView, error) {
+// 	bytes, err := peer.Get(g.name, key)
+// 	if err != nil {
+// 		return ByteView{}, err
+// 	}
+// 	return ByteView{b: bytes}, nil
+// }
+
+func (g *Group) getFromPeer(peer PeerGetter, key string) (ByteView, error) {
+	req := &proto.Request{
+		Group: g.name,
+		Key:   key,
+	}
+	res := &proto.Response{}
+	if err := peer.Get(req, res); err != nil {
+		return ByteView{}, err
+	}
+	return ByteView{b: res.Value}, nil
 }
 
 func (g *Group) getLocal(key string) (ByteView, error) {
@@ -93,4 +138,13 @@ func (g *Group) getLocal(key string) (ByteView, error) {
 
 func (g *Group) populateCache(key string, value ByteView) {
 	g.mcache.add(key, value)
+}
+
+// RegisterPeers register a PeerPicker
+func (g *Group) RegisterPeers(peers PeerPicker) {
+	if g.peers != nil {
+		// panic("RegisterPeers invoked more than once")
+		return
+	}
+	g.peers = peers
 }
