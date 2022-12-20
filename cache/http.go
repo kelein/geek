@@ -9,6 +9,9 @@ import (
 	"sync"
 
 	"geek/cache/consistenthash"
+	"geek/cache/proto"
+
+	probuf "github.com/golang/protobuf/proto"
 )
 
 const (
@@ -135,23 +138,33 @@ func (h *httpGetter) Get2(group, key string) ([]byte, error) {
 	return bytes, nil
 }
 
-func (h *httpGetter) Get(group, key string) ([]byte, error) {
+func (h *httpGetter) Get(in *proto.Request, out *proto.Response) error {
 	// format: http://example.com/_gcache/group/key
 	link := fmt.Sprintf(
 		"%v%v/%v",
 		h.baseURL,
-		url.QueryEscape(group),
-		url.QueryEscape(key),
+		url.QueryEscape(in.GetGroup()),
+		url.QueryEscape(in.GetKey()),
 	)
 
 	res, err := http.Get(link)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	defer res.Body.Close()
 
 	if res.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("server status %d", res.StatusCode)
+		return fmt.Errorf("server status %d", res.StatusCode)
 	}
 
+	bytes, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return fmt.Errorf("read response body error: %v", err)
+	}
+
+	if err := probuf.Unmarshal(bytes, out); err != nil {
+		return fmt.Errorf("unmarshal response error: %v", err)
+	}
+
+	return nil
 }
