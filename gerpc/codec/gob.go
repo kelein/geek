@@ -22,21 +22,24 @@ type GobCodec struct {
 
 // NewGobCodec create a GobCodec instance
 func NewGobCodec(conn io.ReadWriteCloser) Codec {
+	buf := bufio.NewWriter(conn)
 	return &GobCodec{
 		conn: conn,
-		buf:  bufio.NewWriter(conn),
-		enc:  gob.NewEncoder(conn),
+		buf:  buf,
+		enc:  gob.NewEncoder(buf),
 		dec:  gob.NewDecoder(conn),
 	}
 }
 
 // ReadHeader read header by decoder
 func (g *GobCodec) ReadHeader(h *Header) error {
+	glog.Infof("gob codec read header: %+v", h)
 	return g.dec.Decode(h)
 }
 
 // ReadBody read request body by decoder
 func (g *GobCodec) ReadBody(body interface{}) error {
+	glog.Infof("gob codec read body: %+v", body)
 	return g.dec.Decode(body)
 }
 
@@ -45,9 +48,15 @@ func (g *GobCodec) Close() error {
 	return g.conn.Close()
 }
 
-func (g *GobCodec) Write(h *Header, body interface{}) error {
+func (g *GobCodec) Write(h *Header, body interface{}) (err error) {
 	defer func() {
-		if err := g.buf.Flush(); err != nil {
+		// if err := g.buf.Flush(); err != nil {
+		// 	g.Close()
+		// }
+
+		g.buf.Flush()
+		// * Determine Final Error Value
+		if err != nil {
 			g.Close()
 		}
 	}()
