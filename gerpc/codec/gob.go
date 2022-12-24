@@ -16,8 +16,8 @@ var _ Codec = (*GobCodec)(nil)
 type GobCodec struct {
 	conn io.ReadWriteCloser
 	buf  *bufio.Writer
-	dec  *gob.Decoder
 	enc  *gob.Encoder
+	dec  *gob.Decoder
 }
 
 // NewGobCodec create a GobCodec instance
@@ -25,8 +25,8 @@ func NewGobCodec(conn io.ReadWriteCloser) Codec {
 	return &GobCodec{
 		conn: conn,
 		buf:  bufio.NewWriter(conn),
-		dec:  gob.NewDecoder(conn),
 		enc:  gob.NewEncoder(conn),
+		dec:  gob.NewDecoder(conn),
 	}
 }
 

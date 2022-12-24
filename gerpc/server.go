@@ -1,4 +1,4 @@
-package tinyrpc
+package gerpc
 
 import (
 	"encoding/json"
@@ -9,8 +9,8 @@ import (
 
 	"github.com/pkg/errors"
 
+	"geek/gerpc/codec"
 	"geek/glog"
-	"geek/tinyrpc/codec"
 )
 
 // OriginMagicNum for protocol
@@ -23,6 +23,8 @@ var DefaultOption = &Option{
 	MagicNumber: OriginMagicNum,
 	CodecKind:   codec.GOB,
 }
+
+var defaultServer = NewServer()
 
 // Option for custom server settings
 type Option struct {
@@ -46,7 +48,7 @@ func NewServer() *Server {
 
 // Accept holds connections and serves requests with default server
 func Accept(l net.Listener) {
-	DefaultServer.Accept(l)
+	defaultServer.Accept(l)
 }
 
 // Accept holds connections and serves requests
@@ -98,7 +100,7 @@ func (s *Server) serveCodec(c codec.Codec) {
 			continue
 		}
 		wg.Add(1)
-		go s.handleRequest(codec, req, sending, wg)
+		go s.handleRequest(c, req, sending, wg)
 	}
 
 	wg.Wait()
@@ -143,7 +145,7 @@ func (s *Server) sendResponse(c codec.Codec, h *codec.Header, body interface{}, 
 
 func (s *Server) handleRequest(c codec.Codec, req *request, sending *sync.Mutex, wg *sync.WaitGroup) {
 	defer wg.Done()
-
+	glog.Info(req.header, req.argv.Elem())
 	// TODO: parse request reply
 	req.replyv = reflect.ValueOf(req.header.Seq)
 	body := req.replyv.Interface()
