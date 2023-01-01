@@ -36,3 +36,4 @@ bin
 
 # Ingore test data
 geek.db
+cmd/gerpc/server/server

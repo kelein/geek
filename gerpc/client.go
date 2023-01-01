@@ -50,3 +50,10 @@ func (cli *Client) Close() error {
 	cli.closing = true
 	return cli.cc.Close()
 }
+
+// IsAvailable checks whether the client works
+func (cli *Client) IsAvailable() bool {
+	cli.mu.Lock()
+	defer cli.mu.Unlock()
+	return !cli.shutdown && !cli.closing
+}
